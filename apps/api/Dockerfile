@@ -23,6 +23,16 @@ COPY --from=deps /app/apps/api/node_modules ./node_modules
 COPY --from=build /app/apps/api/dist ./dist
 COPY --from=build /app/apps/api/package.json ./package.json
 
+ARG APP_VERSION=dev
+ARG GIT_SHA=unknown
+ARG APP_ENV=production
+ARG BUILD_TIME=unknown
+
+ENV APP_VERSION=$APP_VERSION
+ENV GIT_SHA=$GIT_SHA
+ENV APP_ENV=$APP_ENV
+ENV BUILD_TIME=$BUILD_TIME
+
 EXPOSE 3100
 
 CMD ["node", "dist/index.js"]
