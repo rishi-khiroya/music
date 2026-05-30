@@ -12,6 +12,7 @@ on:
       - "pnpm-workspace.yaml"
       - "turbo.json"
       - ".github/workflows/deploy-dev-api.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -26,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout app repo
         uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
@@ -65,14 +66,33 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Deploy on archserver
-        uses: appleboy/ssh-action@v1.2.2
+      - name: Checkout infra repo
+        uses: actions/checkout@v5
         with:
-          host: ${{ vars.ARCHSERVER_HOST }}
-          username: ${{ vars.ARCHSERVER_USER }}
-          key: ${{ secrets.ARCHSERVER_SSH_KEY }}
-          script: |
-            cd /srv/docker/compose/music-dev
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+          repository: rishi-khiroya/music-infra
+          path: music-infra
+          ssh-key: ${{ secrets.MUSIC_INFRA_DEPLOY_KEY }}
+          persist-credentials: false
+
+      - name: Prepare deploy key
+        run: |
+          echo "${{ secrets.ARCHSERVER_SSH_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+
+      - name: Ensure compose directory exists
+        run: |
+          ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key \
+            ${{ vars.ARCHSERVER_USER }}@${{ vars.ARCHSERVER_HOST }} \
+            'mkdir -p /srv/docker/compose/music-dev'
+
+      - name: Copy dev compose to archserver
+        run: |
+          scp -o StrictHostKeyChecking=no -i /tmp/deploy_key \
+            music-infra/compose/dev/compose.yaml \
+            ${{ vars.ARCHSERVER_USER }}@${{ vars.ARCHSERVER_HOST }}:/srv/docker/compose/music-dev/compose.yaml
+
+      - name: Deploy on archserver
+        run: |
+          ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key \
+            ${{ vars.ARCHSERVER_USER }}@${{ vars.ARCHSERVER_HOST }} \
+            'cd /srv/docker/compose/music-dev && docker compose pull && docker compose up -d && docker image prune -f'
