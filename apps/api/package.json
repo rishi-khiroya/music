@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
     "build": "tsc --noEmit",
     "check": "tsc --noEmit"
   },
@@ -12,7 +14,12 @@
     "hono": "latest"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.1",
+    "globals": "^16.5.0",
     "tsx": "latest",
-    "typescript": "latest"
+    "typescript": "5.9.2",
+    "typescript-eslint": "^8.50.0"
   }
 }
