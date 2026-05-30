@@ -1,12 +1,13 @@
 {
-  "name": "@music/api",
+  "name": "api",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "build": "tsc --noEmit",
     "check": "tsc --noEmit"
   },
   "dependencies": {
