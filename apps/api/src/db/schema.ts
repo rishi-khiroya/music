@@ -119,6 +119,8 @@ export const trackArtists = pgTable(
     artistId: uuid("artist_id")
       .notNull()
       .references(() => artists.id, { onDelete: "cascade" }),
+
+    sortOrder: integer("sort_order").notNull().default(0),
   },
   (table) => [
     primaryKey({ columns: [table.trackId, table.artistId] }),
@@ -153,6 +155,8 @@ export const trackVersionArtists = pgTable(
     artistId: uuid("artist_id")
       .notNull()
       .references(() => artists.id, { onDelete: "cascade" }),
+
+    sortOrder: integer("sort_order").notNull().default(0),
   },
   (table) => [
     primaryKey({ columns: [table.trackVersionId, table.artistId] }),
