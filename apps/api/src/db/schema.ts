@@ -17,6 +17,7 @@ export const trackVersionStatus = pgEnum("track_version_status", [
   "demo",
   "id",
   "release_candidate",
+  "mastered",
   "released",
   "archived",
 ]);

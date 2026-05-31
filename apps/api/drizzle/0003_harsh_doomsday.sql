@@ -1,0 +1,1 @@
+ALTER TYPE "public"."track_version_status" ADD VALUE 'mastered' BEFORE 'released';
