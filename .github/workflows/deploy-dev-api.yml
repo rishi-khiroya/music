@@ -104,10 +104,14 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key \
             ${{ vars.ARCHSERVER_USER }}@${{ vars.ARCHSERVER_HOST }} \
-            'set -euo pipefail
-              cd /srv/docker/compose/music-dev
-              docker compose pull
-              docker compose up -d postgres minio
-              docker compose run --rm migrate
-              docker compose up -d api
-              docker image prune -f'
+            'bash -s' <<'EOF'
+            
+            set -euo pipefail
+            cd /srv/docker/compose/music-dev
+            docker compose pull api migrate postgres minio
+            docker compose up -d postgres minio
+            docker compose run --rm --pull always migrate
+            docker compose up -d api
+            docker image prune -f
+
+            EOF
