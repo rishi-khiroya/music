@@ -19,7 +19,8 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/rishi-khiroya/music-api
+  API_IMAGE_NAME: ghcr.io/rishi-khiroya/music-api
+  MIGRATE_IMAGE_NAME: ghcr.io/rishi-khiroya/music-api-migrate
   IMAGE_TAG: dev
 
 jobs:
@@ -46,18 +47,26 @@ jobs:
           echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
           echo "build_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push dev image
+      - name: Build and push dev API image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/api/Dockerfile
           push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          tags: ${{ env.API_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           build-args: |
             APP_VERSION=dev
             GIT_SHA=${{ steps.meta.outputs.sha_short }}
             APP_ENV=development
             BUILD_TIME=${{ steps.meta.outputs.build_time }}
+
+      - name: Build and push dev migration image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/api/Dockerfile.migrate
+          push: true
+          tags: ${{ env.MIGRATE_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
@@ -95,4 +104,10 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key \
             ${{ vars.ARCHSERVER_USER }}@${{ vars.ARCHSERVER_HOST }} \
-            'cd /srv/docker/compose/music-dev && docker compose pull && docker compose up -d && docker image prune -f'
+            'set -euo pipefail
+              cd /srv/docker/compose/music-dev
+              docker compose pull
+              docker compose up -d postgres minio
+              docker compose run --rm migrate
+              docker compose up -d api
+              docker image prune -f'
