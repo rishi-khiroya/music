@@ -1,25 +1,16 @@
+import "./env";
+
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import health from "./routes/health";
+import tracks from "./routes/tracks";
+import version from "./routes/version";
 
 const app = new Hono();
 
-const version = {
-  version: process.env.APP_VERSION ?? "dev",
-  commitSha: process.env.GIT_SHA ?? "unknown",
-  environment: process.env.APP_ENV ?? "local",
-  buildTime: process.env.BUILD_TIME ?? "unknown",
-};
-
-app.get("/version", (c) => {
-  return c.json(version);
-});
-
-app.get("/health", (c) => {
-  return c.json({
-    status: "ok",
-    service: "music-api",
-  });
-});
+app.route("/health", health);
+app.route("/version", version);
+app.route("/tracks", tracks);
 
 serve({
   fetch: app.fetch,

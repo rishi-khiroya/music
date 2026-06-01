@@ -3,8 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "dev": "tsx watch --env-file=.env.development src/index.ts",
+    "dev:tunnel": "ssh -N -L 5433:localhost:5433 -L 9002:localhost:9002 -L 9003:localhost:9003 arch.vrish.dev",
+    "dev:remote": "concurrently -k -n tunnel,api \"pnpm dev:tunnel\" \"pnpm dev\"",
+    "build": "tsup src/index.ts --format esm --platform node --target node22 --out-dir dist",
     "start": "node dist/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -27,6 +29,7 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.1",
     "globals": "^16.5.0",
+    "tsup": "^8.5.1",
     "tsx": "latest",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.50.0"
